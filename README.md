@@ -28,6 +28,9 @@ factor for me that I definitely do not need, and it would be time consuming as w
  add new translations, feel free to make an issue ( I may use an other system if my project evolves accordingly, but it is not needed now, 
  keep reading what translations are needed and you will clearly understand why)
  
+- If you have graphic talent and want to make better app store screenshot, a better logo, feel free to propose. Anything will probably be better than the current app pages.
+ 
+ 
  ## Translations string
  
  1. Save button : Save in english. (to adjust the time)
@@ -35,5 +38,4 @@ factor for me that I definitely do not need, and it would be time consuming as w
 3. Product pages
 
 
-- If you have graphic talent and want to make better app store screenshot, a better logo, feel free to propose. Anything will probably be better than the current app pages.
- 
+
