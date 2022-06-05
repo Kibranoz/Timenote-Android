@@ -1,25 +1,24 @@
 package com.example.myapplication
-import com.example.myapplication.Timenote
+import android.content.Intent
 import android.os.Bundle
-import android.provider.SyncStateContract
-import android.widget.Chronometer
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 
@@ -27,8 +26,9 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 class MainActivity : ComponentActivity() {
-    var timenote = Timenote()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val timenote:Timenote by viewModels()
         super.onCreate(savedInstanceState)
         setContent {
             MyApplicationTheme {
@@ -78,8 +78,7 @@ fun TimeChange(timenote: Timenote, onPlayStatusChange: (Int) -> Unit, showTimeAd
     var hours by remember{ mutableStateOf("")}
     var minutes by remember{ mutableStateOf("")}
     var seconds by remember{ mutableStateOf("")}
-        Column {
-
+        Column(verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
                 TextField(value = hours, onValueChange = { hours = it }, modifier = Modifier.width(100.dp),
@@ -88,24 +87,29 @@ fun TimeChange(timenote: Timenote, onPlayStatusChange: (Int) -> Unit, showTimeAd
                 Text(":", fontSize = 40.sp )
                 TextField(value = minutes, onValueChange = { minutes = it }, modifier = Modifier.width(100.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Phone))
-                Text(":")
+                Text(":", fontSize  = 40.sp)
                 TextField(value = seconds, onValueChange = { seconds = it }, modifier = Modifier.width(100.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Phone))
             }
+            Spacer(modifier = Modifier.height(20.dp))
+
             Button(onClick = {
                 if (timenote.getIfBegin()){
                     timenote.play()
                 }
 
                 timenote.adjustTime(
-                    hours = hours.toInt(),
-                    minutes = minutes.toInt(),
-                    seconds = seconds.toInt()
+                    hours = hours.toIntOrNull() ?: 0,
+                    minutes = minutes.toIntOrNull() ?: 0,
+                    seconds = seconds.toIntOrNull() ?:0
                 )
                 onPlayStatusChange(R.drawable.ic_baseline_pause_24)
                 timenote.play()
 
             }) {
+                Icon(painter = painterResource(id = R.drawable.ic_baseline_save_24), contentDescription = "adjust new time", modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(20.dp))
+
                 Text("Enregistrer")
             }
         }
@@ -122,7 +126,7 @@ fun Greeting(name: String) {
 
 fun TimeView(timenote: Timenote){
     var timeStr by remember { mutableStateOf("")}
-     Timer().schedule(delay = 10000, period = 1000) {
+     Timer().schedule(delay = 1000, period = 1000) {
          timeStr = timenote.getStrTime()
     }
     Text(timeStr, fontSize  = 40.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
@@ -137,6 +141,7 @@ showTimeAdjustView:Boolean){
             Icon(painter = painterResource(id = R.drawable.ic_baseline_history_24), contentDescription = "Go back", modifier = Modifier.size(40.dp))
 
         }
+
 
         IconButton(onClick = { timenote.receiveTextFromActivityAndUpdateWithNewTimestamp(text = text)
         onTextChange(timenote.sendTextToActivity())}) {
@@ -158,8 +163,21 @@ showTimeAdjustView:Boolean){
 
         }
 
-        IconButton(onClick = { /*TODO*/ }) {
-            Icon(painter = painterResource(id = R.drawable.ic_baseline_save_24), contentDescription = "Save to disk", modifier = Modifier.size(40.dp))
+        val context = LocalContext.current;
+
+
+        IconButton(onClick = {
+
+            timenote.receiveTextFromActivity(text=text)
+            val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, timenote.sendTextToActivity())
+            type = "text/plain"
+        }
+            val shareIntent = Intent.createChooser(sendIntent, "Share")
+            startActivity(context,shareIntent,null)
+        }) {
+            Icon(painter = painterResource(id = R.drawable.ic_baseline_share_24), contentDescription = "Save to disk", modifier = Modifier.size(40.dp))
 
         }
 
@@ -167,6 +185,8 @@ showTimeAdjustView:Boolean){
 
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable
